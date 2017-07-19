@@ -2,13 +2,14 @@
 class ZabbixApi {
     private $username = ""; 
     private $password = "";  
-    public $apitoken = "notset";
-    public $zbxhost = '';    //we add  this  for  the  description  of the trigger
+    public $apitoken = "notset"; //default value
+    public $zbxhost = '';  //we add  this  for  the  description  of the trigger
     public $zabbixhost = ''; // out  call for api
     public $triggers = 'notset';
     public $hosts = 'notset';
 
     function __construct($info = "hosts", $keys = '') {
+	// set globals
       global $ZabbixApi,$zabbixUser,$zabbixPass,$zabbixHost,$zabbixUrl,$Convert,$Groupids;
         //Log in to zabbix
         $this->username = $zabbixUser;
@@ -35,7 +36,7 @@ class ZabbixApi {
         return $result;
     }
     function login() {
-        //we  detect if  the API  token is not set if it is we don need  to log in again
+        //we  detect if  the API token is default value, if it is not, we dont need to log in again.
         if ($this->apitoken == 'notset') {
             $jsoninfo = '{ "jsonrpc":"2.0","method": "user.login", "params" :{ "user": "' . $this->username . '", "password": "' . $this->password . '"},"id":1}';
             $test = $this->curlie($jsoninfo);
@@ -66,7 +67,6 @@ class ZabbixApi {
         return $files;
     }
     function __destruct() {
-
     }
 }
 $ZabbixApi = new ZabbixApi();
