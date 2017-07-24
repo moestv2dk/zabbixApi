@@ -1,2 +1,2 @@
 # zabbixApi
-This a zabbix API for communication  via PHP
+This for communication to the zabbix API via PHP
