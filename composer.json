@@ -1,0 +1,12 @@
+{
+    "name": "moesgaard/zabbix-api",
+    "description": "Zabbix Api to use in php scripts",
+    "type": "plugin",
+    "autoload": {
+        "psr-4": {
+            "ZabbixApi\\": "src/"
+        }
+    },
+    "minimum-stability": "dev",
+    "require": { }
+}
