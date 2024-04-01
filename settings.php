@@ -1,11 +1,40 @@
 <?php
- //API User
-$zabbixUser = '';
+
+//API User
+if(!defined('ZABBIXUSER')) {
+    define('ZABBIXUSER', '');
+}
 //API Password
-$zabbixPass = '';
-//HOST (can be used for rewrite if name differ from $zabbixUrl)
-$zabbixHost = '';
-//Zabbix API url
-$zabbixUrl = 'http://localhost/zabbix/api_jsonrpc.php';
+
+if(!defined('ZABBIXPASS')) {
+    define('ZABBIXPASS', '');
+}
+//Goin version 6.4 and above Zabbbix token is used
+
+if(!defined('ZABBIXTOKEN')) {
+    define('ZABBIXTOKEN', '');
+}
+/**
+ *  The zabbix host (can be used for rewrite if  the name differ from Zabbix Url
+ *  e.g. you contact  the zabbix Server via Localhost, but you have an external URL for systems  )
+ */
+if (!defined('ZABBIXHOST')) {
+    define('ZABBIXHOST', '');
+}
+/**
+ *
+ *  Zabbix Url for calling the JSON API
+ *  examples are
+ * 'http://localhost/zabbix/api_jsonrpc.php';
+ * 'http://localhost/api_jsonrpc.php';
+ * 'https://[yourdomain]/api_jsonrpc.php';
+ */
+
+if(!defined('ZABBIXURL')) {
+    define('ZABBIXURL', '');
+}
 //Can beused if  you only want to get hosts from specific group
-$Groupids='46';
+
+if(!defined('ZABBIXGROUP')) {
+    define('ZABBIXGROUP', '');
+}
