@@ -1,12 +1,17 @@
 {
     "name": "moesgaard/zabbix-api",
-    "description": "Zabbix Api to use in php scripts",
-    "type": "plugin",
+    "type": "library",
+    "license": "MIT",
     "autoload": {
         "psr-4": {
-            "ZabbixApi\\": "src/"
+            "ZbxApi\\Api\\": "src/Api/",
+            "ZbxApi\\": "src/Method/",
+            "ZbxApi\\Help\\": "src/Help/"
+
         }
     },
-    "minimum-stability": "dev",
-    "require": { }
+    "minimum-stability": "stable",
+    "require": {
+        "guzzlehttp/guzzle": "^7.8"
+    }
 }
