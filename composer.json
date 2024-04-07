@@ -2,6 +2,7 @@
     "name": "moesgaard/zabbix-api",
     "type": "library",
     "license": "MIT",
+    "description": "a Php way to communicate with Zabbix Api",
     "autoload": {
         "psr-4": {
             "ZbxApi\\Api\\": "src/Api/",
