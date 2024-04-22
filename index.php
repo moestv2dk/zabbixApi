@@ -3,8 +3,7 @@
 require 'settings.php';
 require 'vendor/autoload.php';
 
-use ZbxApi\GetHosts;
+use ZbxApi\ApiCalls;
 
-$problem = new GetHosts();
-$problem->setHostID('10084');
-print_r($problem->GetHostInfo());
+$problem = new ApiCalls();
+echo json_encode($problem->findFunction('host.get', [ "hostids" => '' ]), JSON_PRETTY_PRINT);

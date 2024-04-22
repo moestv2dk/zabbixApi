@@ -2,234 +2,184 @@
 
 namespace ZbxApi\Api;
 
-use GuzzleHttp\Client;
+use Http\Discovery\Psr18ClientDiscovery;
+use Http\Message\MessageFactory\MessageFactoryDiscovery;
+use Http\Message\StreamFactory\StreamFactoryDiscovery;
 
 class ZbxApi
 {
     /**
-     *  username
+     * @var string
      */
-    private $username = "";
-    private $password = "";
-    public $apitoken = "notset"; //default value
-    public $zbxhost = '';  //we add  this  for  the  description  of the trigger
-    public $zabbixhost = ''; // call for api
-    public $triggers = 'notset';
-    public $hosts = 'notset';
-    private $Requests;
+    private $username;
 
+    /**
+     * @var string
+     */
+    private $password;
+
+    /**
+     * @var string
+     */
+    private $apitoken;
+
+    /**
+     * @var string
+     */
+    public $zbxhost;
+
+    /**
+     * @var string
+     */
+    public $zabbixhost;
+
+    /**
+     * @var PluginClient
+     */
+    private $client;
+
+    /**
+     * ZbxApi constructor.
+     */
     public function __construct()
     {
-        //Log in to zabbix
-        $this->setUsername(ZABBIXUSER);
-        $this->setPassword(ZABBIXPASS);
-        $this->setApitoken(ZABBIXTOKEN);
-        $this->setZbxhost(ZABBIXHOST);
-        $this->setZabbixhost(ZABBIXURL);
-        $this->setRequests();
+        // Set Zabbix credentials and host
+        $this->setCredentials();
+        $this->setZabbixHost();
+
+        $this->client = new PluginClient(
+             Psr18ClientDiscovery::find(),
+            new MessageFactoryDiscovery(),
+            new StreamFactoryDiscovery()
+        );
+        // Login to Zabbix
         $this->login();
     }
-    public function SendRequest($data_string)
+
+    /**
+     * Set Zabbix credentials
+     */
+    private function setCredentials(): void
     {
-        // we  build the  curl options for contacting the  zabbix host
-        $result = $this->Requests->request(
-            "post",
+        $this->username = ZABBIXUSER;
+        $this->password = ZABBIXPASS;
+        if(ZABBIXTOKEN == '') {
+            $this->apitoken = 'notset';
+        } else {
+            $this->apitoken = ZABBIXTOKEN;
+        }
+    }
+
+    /**
+     * Set Zabbix host
+     */
+    private function setZabbixHost(): void
+    {
+        $this->zbxhost = ZABBIXHOST;
+        $this->zabbixhost = ZABBIXURL;
+    }
+
+    /**
+     * Send request to Zabbix
+     *
+     * @param string $dataString
+     *
+     * @return string
+     */
+    public function sendRequest(string $dataString): string
+    {
+        $result = $this->client->sendRequest(
             $this->zabbixhost,
+            'POST',
             [
-                 'headers' =>
-             [
-                'Accept' => 'application/json',
-                'Content-Type' => 'application/json'
-            ],
-                'body' =>  $data_string
+                'headers' => [
+                    'Accept' => 'application/json',
+                    'Content-Type' => 'application/json'
+                ],
+                'body' => $dataString
             ]
         );
-        return $result->getBody();
 
+        return $result->getBody();
     }
-    public function login()
+
+    /**
+     * Login to Zabbix
+     */
+    public function login(): void
     {
-        //we  detect if  the API token is default value, if it is not, we dont need to log in again.
-        if ($this->getApitoken() == 'notset') {
-            $jsoninfo = '{ "jsonrpc":"2.0","method": "user.login", "params" :{ "user": "' . $this->username . '", "password": "' . $this->password . '"},"id":1}';
-            $test = $this->SendRequest($jsoninfo);
+        if ($this->apitoken === 'notset') {
+            $jsonInfo = json_encode(
+                [
+                    'jsonrpc' => '2.0',
+                    'method' => 'user.login',
+                    'params' => [
+                        'user' => $this->username,
+                        'password' => $this->password
+                    ],
+                    'id' => 1
+                ]
+            );
+            $test = $this->sendRequest($jsonInfo);
             $files = json_decode($test);
-            //set api token so we can log in
-            $this->setApitoken($files->result);
+            // Set api token so we can log in
+            $this->apitoken = $files->result;
         }
     }
-    public function ParseRequest($method, $params, $addons): string
+
+    /**
+     * Parse request to Zabbix
+     *
+     * @param string $method
+     * @param array $params
+     * @param array $addons
+     *
+     * @return string
+     */
+    public function parseRequest(string $method, array $params, array $addons): string
     {
-        //we build  the array  that is needed for  the contact with Zabbix
-        $array = array();
-        $array['jsonrpc'] = '2.0';
-        $array['method'] = $method;
-        $array['params'] = $params;
+        $array = [
+            'jsonrpc' => '2.0',
+            'method' => $method,
+            'params' => $params,
+            'auth' => $this->apitoken,
+            'id' => 1
+        ];
+
         if (is_array($addons)) {
-            array_merge($array, $addons);
+            $array = array_merge($array, $addons);
         }
-        $array['auth'] = $this->getApitoken();
-        $array['id'] = 1;
-        //we return  the converted array to json
+
         return json_encode($array);
     }
-    public function GetRequest($method, $params, $addons): object
+
+    /**
+     * Get request from Zabbix
+     *
+     * @param string $method
+     * @param array $params
+     * @param array $addons
+     *
+     * @return object
+     */
+    public function getRequest(string $method, array $params, array $addons): object
     {
-        // we ask to get our arrays converted to json
-        $jsoninfo = $this->ParseRequest($method, $params, $addons);
-
-        // we fire off our json request and then return the  Json decoded content
-        $files = json_decode($this->SendRequest($jsoninfo));
-
+        $jsonInfo = $this->parseRequest($method, $params, $addons);
+        $files = json_decode($this->sendRequest($jsonInfo));
         return $files;
     }
-    public function get_zabbix_req($method, $params, $addons)
-    {
-        return $this->GetRequest($method, $params, $addons);
-    }
-    /**
-     * Get the value of apitoken
-     */
-    public function getApitoken()
-    {
-        return $this->apitoken;
-    }
 
     /**
-     * Set the value of apitoken
+     * Get request from Zabbix
      *
-     * @return  self
-     */
-    public function setApitoken($apitoken)
-    {
-        $this->apitoken = $apitoken;
-
-        return $this;
-    }
-
-    /**
-     * Get the value of hosts
-     */
-    public function getHosts()
-    {
-        return $this->hosts;
-    }
-
-    /**
-     * Set the value of hosts
+     * @param string $method
+     * @param array $params
+     * @param array $addons
      *
-     * @return  self
+     * @return object
      */
-    public function setHosts($hosts)
+    public function getZabbixReq(string $method, array $params, array $addons): object
     {
-        $this->hosts = $hosts;
-
-        return $this;
-    }
-
-    /**
-     * Get the value of password
-     */
-    public function getPassword()
-    {
-        return $this->password;
-    }
-
-    /**
-     * Set the value of password
-     *
-     * @return  self
-     */
-    public function setPassword($password)
-    {
-        $this->password = $password;
-
-        return $this;
-    }
-
-    /**
-     * Get username
-     */
-    public function getUsername()
-    {
-        return $this->username;
-    }
-
-    /**
-     * Set username
-     *
-     * @return  self
-     */
-    public function setUsername($username)
-    {
-        $this->username = $username;
-
-        return $this;
-    }
-
-    /**
-     * Get the value of zbxhost
-     */
-    public function getZbxhost()
-    {
-        return $this->zbxhost;
-    }
-
-    /**
-     * Set the value of zbxhost
-     *
-     * @return  self
-     */
-    public function setZbxhost($zbxhost)
-    {
-        $this->zbxhost = $zbxhost;
-
-        return $this;
-    }
-
-    /**
-     * Get the value of zabbixhost
-     */
-    public function getZabbixhost()
-    {
-        return $this->zabbixhost;
-    }
-
-    /**
-     * Set the value of zabbixhost
-     *
-     * @return  self
-     */
-    public function setZabbixhost($zabbixhost)
-    {
-        $this->zabbixhost = $zabbixhost;
-
-        return $this;
-    }
-    public function __destruct()
-    {
-        // we Destroy the session to avoid building up Zabbix  Login  table when not logged in anymore
-        $jsoninfo = $this->apiBuilder('logout', '', '');
-        $this->Request($jsoninfo);
-    }
-
-    /**
-     * Get the value of Requests
-     */
-    public function getRequests()
-    {
-        return $this->Requests;
-    }
-
-    /**
-     * Set the value of Requests
-     *
-     * @return  self
-     */
-    public function setRequests()
-    {
-        $this->Requests = new Client();
-
-        return $this;
+        return $this->getRequest($method, $params, $addons);
     }
 }
