@@ -3,7 +3,6 @@
 namespace ZbxApi;
 
 use ZbxApi\Api\ZbxApi as ZabbixApi;
-use ZbxApi\GetHosts;
 
 class Problems
 {
@@ -25,7 +24,7 @@ class Problems
           'triggerids' => $this->getTid()
         );
         $addons = '';
-        $this->zHost = $this->Zapi->get_zabbix_req($method, $params, $addons);
+        $this->zHost = $this->Zapi->getZabbixReq($method, $params, $addons);
         return $this->zHost;
     }
     public function isProxy($proxy = '')
@@ -34,9 +33,8 @@ class Problems
         $method = 'host.get';
         $params = array('output' => ['hostid'], 'proxy_hosts' => 1);
         $addons = '';
-        $this->zProxy = $this->Zapi->get_zabbix_req($method, $params, $addons);
+        $this->zProxy = $this->Zapi->getZabbixReq($method, $params, $addons);
         foreach ($this->zProxy->result as $key => $value) {
-
             if ($value->hostid == $proxy) {
                 return true;
             }
@@ -56,7 +54,7 @@ class Problems
               'only_true' => '1'
             );
             $addons = '';
-            $zProxyTriggers = $this->Zapi->get_zabbix_req($method, $params, $addons);
+            $zProxyTriggers = $this->Zapi->getZabbixReq($method, $params, $addons);
             foreach ($zProxyTriggers->result as $key => $value) {
                 if ($value->triggerid == $triggerId) {
                     return true;

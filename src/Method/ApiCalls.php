@@ -26,9 +26,9 @@ class ApiCalls
     /**
      * ApiCalls constructor.
      */
-    public function __construct()
+    public function __construct($client = null)
     {
-        $this->ZbxApi  = new  ZbxApi();
+        $this->ZbxApi  = new  ZbxApi($client);
     }
 
     /**
@@ -39,11 +39,10 @@ class ApiCalls
         * @return mixed The result of the API call.
         */
 
-    public function parseCall($object)
+    public function parseCall(array $object)
     {
         try {
-            $object = json_encode($object);
-            return $this->ZbxApi->SendRequest($object);
+            return $this->ZbxApi->SendPostRequest($object);
         } catch (\Exception $e) {
             echo 'Caught exception: ',  $e->getMessage(), "\n";
         }
@@ -55,7 +54,6 @@ class ApiCalls
         foreach ($methods as $method) {
             if (strpos($method, $function) !== false) {
                 $result = $this->$method($object);
-
             }
         }
         return $this->parseCall($result);

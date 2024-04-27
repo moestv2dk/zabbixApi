@@ -2,25 +2,42 @@
     "name": "moesgaard/zabbix-api",
     "type": "library",
     "license": "MIT",
-    "description": "a Php way to communicate with Zabbix Api",
+    "description": "A Php way to communicate with Zabbix Api, Using auto discovery of Clients to use for http calls",
+    "keywords": [
+        "zabbix",
+        "ZbxApi",
+        "api",
+        "zabbix api"
+    ],
     "autoload": {
         "psr-4": {
             "ZbxApi\\Api\\": "src/Api/",
             "ZbxApi\\": "src/Method/",
-            "ZbxApi\\Help\\": "src/Help/"
+            "ZbxApi\\Help\\": "src/Help/",
+            "ZbxApi\\Client\\": "src/Client/"
         }
     },
-    "minimum-stability": "stable",
     "require": {
-        "psr/http-message": "^1.0",
-        "psr/http-client-implementation": "^1.0",
-        "php-http/httplug": "^2.0",
-        "php-http/discovery": "^1.0",
-        "psr/http-factory": "^1.0"
+        "php": ">=7.4",
+        "php-http/discovery": "^1.17",
+        "psr/http-client-implementation": "*",
+        "symfony/http-client": "^7.0",
+        "psr/http-client": "^1.0",
+        "nyholm/psr7": "^1.8",
+        "psr/http-factory-implementation": "*",
+        "php-http/curl-client": "^2.3",
+        "composer": "^2.6",
+        "php-http/guzzle7-adapter": "^1.0",
+        "php-http/client-common": "^2.7"
     },
     "config": {
         "allow-plugins": {
             "php-http/discovery": true
+        }
+    },
+    "extra": {
+        "discovery": {
+            "psr/http-factory-implementation": "GuzzleHttp\\Psr7\\HttpFactory"
         }
     }
 }
